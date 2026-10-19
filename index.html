@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python Quest</title>
+<style>
+:root{--bg:#0f1220;--panel:#181c30;--line:#2a3050;--fg:#e8eaf6;--dim:#8a91b4;--gold:#ffc94d;--ok:#5fd68a;--bad:#ff7a7a;--acc:#7aa2ff;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--font)}
+.wrap{max-width:720px;margin:0 auto;padding:12px 14px 50px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.top h1{font-size:16px;margin:0;flex:1}
+.top button{font-size:12px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 14px;min-height:40px}
+button:disabled{opacity:.45;cursor:default}
+button.main{background:var(--acc);color:#0b1030;border-color:var(--acc);font-weight:600}
+button.go{background:var(--ok);color:#06210f;border-color:var(--ok);font-weight:600}
+.hud{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.hud .row{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);margin-bottom:6px}
+.hud b{color:var(--gold)}
+.bar{height:8px;background:#0b0e1c;border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ff9d4d);transition:width .4s}
+.load{font-size:13px;color:var(--dim);margin:0 0 10px}
+.load.err{color:var(--bad)}
+.tools{display:flex;gap:8px;margin:0 0 12px}
+.map{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.node{display:flex}
+.node:nth-child(even){justify-content:flex-end}
+.node button{display:flex;align-items:center;gap:10px;width:82%;text-align:left;padding:10px 12px;position:relative}
+.node .ic{font-size:26px}
+.node .t{font-weight:600;font-size:14px}
+.node .s{font-size:12px;color:var(--dim)}
+.node.done button{border-color:var(--ok)}
+.node.cur button{border-color:var(--gold);box-shadow:0 0 0 2px #ffc94d33}
+.node.lock button{opacity:.45}
+.hero{position:absolute;right:8px;top:6px;font-size:22px;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
+.card h3{margin:0 0 4px;font-size:13px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.card p{margin:6px 0}
+.card ul,.card ol{margin:6px 0;padding-left:22px}
+.card li{margin:3px 0}
+details.les{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:8px 0}
+details.les>summary{cursor:pointer;padding:10px 12px;font-weight:600;font-size:14px}
+details.les .body{padding:0 12px 10px}
+details.les p{margin:6px 0}
+details.les ul{margin:6px 0;padding-left:22px}
+details.les li{margin:3px 0}
+code{font-family:var(--mono);background:#0b0e1c;padding:1px 5px;border-radius:5px;color:#ffd98a}
+pre.ex,pre.screen{font-family:var(--mono);background:#0b0e1c;padding:8px 10px;border-radius:8px;margin:6px 0;overflow:auto;font-size:13px;color:#cfe3ff}
+pre.screen{color:var(--ok);border-left:3px solid var(--ok)}
+pre.screen::before{content:"На экране:\A";white-space:pre;color:var(--dim);font-family:var(--font);font-size:11px}
+.warn{border-left:3px solid var(--bad);padding-left:10px}
+.lvlhead{display:flex;align-items:center;gap:10px}
+.lvlhead .ic{font-size:34px}
+.lvlhead h2{margin:0;font-size:18px}
+.lvlhead small{color:var(--dim)}
+.boss{display:flex;align-items:center;gap:10px;margin:8px 0}
+.boss .ic{font-size:40px}
+.boss .bar{flex:1;height:14px}
+.boss .bar i{background:linear-gradient(90deg,#ff5d5d,#ff9d4d)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.pills button{min-height:36px;min-width:40px;padding:4px 10px}
+.pills button.on{border-color:var(--acc);background:#22305a}
+.pills button.ok{border-color:var(--ok);color:var(--ok)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim);margin-left:6px;text-transform:none;letter-spacing:0}
+textarea{width:100%;min-height:170px;resize:vertical;background:#0b0e1c;color:#e6edff;border:1px solid var(--line);border-radius:10px;padding:10px;font:14px/1.5 var(--mono);tab-size:4}
+textarea:focus{outline:2px solid var(--acc)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.out{font-family:var(--mono);font-size:13px;background:#0b0e1c;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px;white-space:pre-wrap;color:#cfe3ff}
+.out.err{color:var(--bad)}
+.res{margin:10px 0;padding:10px 12px;border-radius:10px;font-size:14px}
+.res.ok{background:#16382a;border:1px solid var(--ok)}
+.res.bad{background:#3a1c1f;border:1px solid var(--bad)}
+.res .btns{margin-bottom:0}
+.hint{font-size:14px;color:#ffe9a8;margin:4px 0;white-space:pre-wrap}
+.hint code,.hint pre{color:#ffe9a8}
+.victory{text-align:center;padding:16px}
+.victory .big{font-size:56px}
+.small{font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>⚔️ Python Quest</h1>
+    <button id="resetBtn" type="button">Сбросить прогресс</button>
+  </div>
+  <div class="hud">
+    <div class="row"><span id="rank"></span><span><b id="xp"></b> XP</span></div>
+    <div class="bar"><i id="xpBar" style="width:0"></i></div>
+  </div>
+  <p id="load" class="load">⏳ Загружаю Python… (в первый раз до 10–20 секунд)</p>
+  <div id="view"></div>
+</div>
+
+<script>
+/*LEVELS_START*/
+function T(task, starter, check, h1, h2, solution, extra){
+  return Object.assign({task, starter, check, hints:[h1, h2, solution], solution}, extra || {});
+}
+const LOCS = [
+
+/* ================= 1. ДЕРЕВНЯ ================= */
+{id:'l1', emoji:'🏘️', place:'Деревня', title:'Первые слова: print',
+ story:'Староста деревни просит героя поприветствовать жителей. В мире Python герои говорят командами, и самая первая команда называется print.',
+ lessons:[
+ {t:'Команда print', h:`<p>Python понимает команды. Самая важная в начале — <code>print</code>. По-английски это «печатать». Она выводит на экран всё, что ты в неё положишь.</p>
+<pre class="ex">print("Привет!")</pre>
+<p>Разберём по частям:</p>
+<ul><li><code>print</code> — имя команды;</li><li><code>( )</code> — скобки: внутри лежит то, что нужно вывести;</li><li><code>"Привет!"</code> — сам текст. Он обязательно в кавычках.</li></ul>
+<pre class="screen">Привет!</pre>
+<p>Кавычки нужны только Python, чтобы понять, где начинается и заканчивается текст. На экране их не будет.</p>`},
+ {t:'Текст и числа', h:`<p>Текст всегда пишут в кавычках. Числа пишут <b>без</b> кавычек, и тогда Python умеет их считать:</p>
+<pre class="ex">print("Золото")
+print(50)
+print(2 + 3)
+print("2 + 3")</pre>
+<pre class="screen">Золото
+50
+5
+2 + 3</pre>
+<p>Последняя строка в кавычках, поэтому Python не считает, а просто выводит текст как есть. Одинарные кавычки <code>'так'</code> работают так же, как двойные.</p>`},
+ {t:'Несколько строк, запятая, комментарии', h:`<p>Каждый <code>print</code> выводит текст с новой строки:</p>
+<pre class="ex">print("Раз")
+print("Два")</pre>
+<pre class="screen">Раз
+Два</pre>
+<p>Внутрь одного print можно положить несколько значений через запятую. Python поставит между ними пробел:</p>
+<pre class="ex">print("Золото:", 50)</pre>
+<pre class="screen">Золото: 50</pre>
+<p>Всё, что идёт после знака <code>#</code>, Python пропускает. Это комментарий, заметка для себя:</p>
+<pre class="ex"># это заметка, её Python не читает
+print("Привет")  # и это тоже заметка</pre>`},
+ {t:'⚠️ Частые ошибки', h:`<ul><li><b>Забыл кавычку или скобку:</b> <code>print("Привет)</code>. Python ответит <code>SyntaxError</code>, то есть «не понимаю запись».</li>
+<li><b>Большая буква:</b> <code>Print("Привет")</code>. Python различает регистр, команда должна быть строчными буквами.</li>
+<li><b>Текст без кавычек:</b> <code>print(Привет)</code>. Python решит, что это имя, которого он не знает (<code>NameError</code>).</li></ul>
+<p>Красный текст ошибки не опасен. Он просто показывает, в какой строке Python споткнулся.</p>`}
+ ],
+ tasks:[
+ T('Выведи на экран ровно: <code>Hello, hero!</code>','# Пиши код под этой строкой\n',
+ String.raw`assert "print" in src, "Используй команду print()"
+assert out.strip() == "Hello, hero!", "Нужно вывести ровно: Hello, hero!"`,
+ 'Пиши <code>print(</code>, потом текст в кавычках, потом закрывающую скобку.','Текст должен совпасть буква в букву, включая запятую и восклицательный знак.','print("Hello, hero!")'),
+ T('Выведи две строки: <code>Я герой</code> и <code>Иду в бой</code>. Два отдельных print.','',
+ String.raw`assert src.count("print") >= 2, "Нужно два print: по одному на каждую строку"
+assert lines == ["Я герой", "Иду в бой"], "Нужно две строки: Я герой и Иду в бой"`,
+ 'Один print выводит одну строку.','Первый print: Я герой. Второй print: Иду в бой.','print("Я герой")\nprint("Иду в бой")'),
+ T('Посчитай прямо в print: выведи результат <code>7 * 6</code>. Не пиши 42 вручную, пусть Python посчитает.','',
+ String.raw`assert "*" in src, "Используй умножение: *"
+assert out.strip() == "42", "Должно получиться 42"`,
+ 'Внутри скобок print можно писать вычисление без кавычек: <code>print(2 + 3)</code>.','Умножение в Python это звёздочка <code>*</code>.','print(7 * 6)'),
+ T('Выведи одной строкой: <code>Золото: 50</code>. Используй print с двумя значениями через запятую: текст и число.','',
+ String.raw`assert "," in src, "Положи в print два значения через запятую"
+assert out.strip() == "Золото: 50", "Должно получиться: Золото: 50"`,
+ 'Первое значение в кавычках: <code>"Золото:"</code>. Второе число: <code>50</code>.','Между ними запятая, а пробел Python поставит сам.','print("Золото:", 50)'),
+ T('Нарисуй лесенку из трёх строк: <code>*</code>, <code>**</code>, <code>***</code>.','',
+ String.raw`assert lines == ["*", "**", "***"], "Нужны три строки: *, ** и ***"`,
+ 'Три print, в каждом звёздочки в кавычках.','Первая строка <code>"*"</code>, вторая <code>"**"</code>, третья <code>"***"</code>.','print("*")\nprint("**")\nprint("***")')
+ ]},
+
+/* ================= 2. ЛЕС ================= */
+{id:'l2', emoji:'🌲', place:'Тёмный лес', title:'Переменные',
+ story:'В лесу герой нашёл мешок с монетами. Чтобы не потерять их количество, его нужно запомнить. Для этого есть переменные.',
+ lessons:[
+ {t:'Что такое переменная', h:`<p>Переменная — это коробка с этикеткой. На этикетке имя, в коробке значение.</p>
+<pre class="ex">gold = 25
+print(gold)</pre>
+<pre class="screen">25</pre>
+<p>Разбор:</p>
+<ul><li><code>gold</code> — имя, которое придумали мы;</li><li><code>=</code> — «положи в коробку». Это не «равно» из математики, а команда «запомни»;</li><li><code>25</code> — значение.</li></ul>
+<p>Когда пишешь <code>print(gold)</code> без кавычек, Python достаёт значение из коробки. А <code>print("gold")</code> в кавычках просто выведет слово gold.</p>`},
+ {t:'Менять значение', h:`<p>Значение можно заменить. Старое забывается:</p>
+<pre class="ex">gold = 25
+gold = 40
+print(gold)</pre>
+<pre class="screen">40</pre>
+<p>Самое полезное: использовать старое значение, чтобы получить новое.</p>
+<pre class="ex">gold = 25
+gold = gold + 5
+print(gold)</pre>
+<pre class="screen">30</pre>
+<p>Строка <code>gold = gold + 5</code> читается так: «возьми то, что лежит в gold, прибавь 5 и положи обратно в gold». Герой нашёл ещё 5 монет.</p>`},
+ {t:'Текст в переменной и правила имён', h:`<p>В переменную можно положить и текст:</p>
+<pre class="ex">name = "Артур"
+print(name)
+print("Привет,", name)</pre>
+<pre class="screen">Артур
+Привет, Артур</pre>
+<p>Правила имён:</p>
+<ul><li>только латинские буквы, цифры и знак <code>_</code>, а начинаться имя не может с цифры;</li><li>без пробелов, вместо пробела <code>_</code>: <code>my_gold</code>;</li><li>регистр важен: <code>Gold</code> и <code>gold</code> — это разные имена;</li><li>имя лучше делать понятным: <code>hp</code>, <code>gold</code>, <code>name</code>.</li></ul>`},
+ {t:'⚠️ Частые ошибки', h:`<ul><li><b>NameError:</b> ты используешь переменную, которую ещё не создал, или ошибся в имени. <code>print(glod)</code> вместо <code>print(gold)</code>.</li>
+<li><b>Кавычки:</b> <code>print("gold")</code> выведет слово, а <code>print(gold)</code> выведет значение.</li>
+<li><b>Порядок:</b> Python читает код сверху вниз. Сначала надо создать переменную, потом использовать.</li></ul>`}
+ ],
+ tasks:[
+ T('Создай переменную <code>hp</code> со значением <code>100</code> и переменную <code>gold</code> со значением <code>25</code>. Потом выведи <code>gold</code>.','# Создай hp и gold, потом выведи gold\n',
+ String.raw`assert globals().get("hp") == 100, "Переменная hp должна быть равна 100"
+assert globals().get("gold") == 25, "Переменная gold должна быть равна 25"
+assert out.strip() == "25", "Выведи gold командой print(gold)"`,
+ 'Знак <code>=</code> кладёт значение в переменную: <code>hp = 100</code>.','Выводить нужно имя переменной без кавычек: <code>print(gold)</code>.','hp = 100\ngold = 25\nprint(gold)'),
+ T('Создай переменную <code>name</code> со значением <code>"Лея"</code> (текст в кавычках) и выведи её.','',
+ String.raw`assert globals().get("name") == "Лея", 'Переменная name должна быть равна "Лея"'
+assert out.strip() == "Лея", "Выведи name командой print(name)"`,
+ 'Текст в переменную кладут тоже через <code>=</code>, но в кавычках.','<code>name = "Лея"</code>, потом <code>print(name)</code>.','name = "Лея"\nprint(name)'),
+ T('Герой нашёл ещё 15 монет. Прибавь их к <code>gold</code> и выведи результат.','gold = 10\n# Прибавь 15 к gold и выведи gold\n',
+ String.raw`assert globals().get("gold") == 25, "После находки gold должно быть 25"
+assert "+" in src, "Используй сложение: +"
+assert out.strip() == "25", "Выведи gold"`,
+ 'Новое значение считается из старого: <code>gold = gold + ...</code>','<code>gold = gold + 15</code>, потом <code>print(gold)</code>.','gold = 10\ngold = gold + 15\nprint(gold)'),
+ T('Есть две переменные <code>a</code> и <code>b</code>. Создай переменную <code>total</code>, равную их сумме, и выведи её.','a = 7\nb = 3\n# Создай total = сумма a и b и выведи его\n',
+ String.raw`assert globals().get("total") == 10, "Переменная total должна быть равна сумме a и b (10)"
+assert out.strip() == "10", "Выведи total"`,
+ 'Переменные можно складывать как числа: <code>a + b</code>.','<code>total = a + b</code>, потом <code>print(total)</code>.','a = 7\nb = 3\ntotal = a + b\nprint(total)'),
+ T('🔥 Челлендж: поменяй <code>first</code> и <code>second</code> местами, а потом выведи <code>first</code> и <code>second</code> на двух строках. Должно получиться: щит, меч.','first = "меч"\nsecond = "щит"\n# Поменяй их местами и выведи first, потом second\n',
+ String.raw`assert globals().get("first") == "щит" and globals().get("second") == "меч", "После обмена first должен быть щитом, а second мечом"
+assert lines == ["щит", "меч"], "Выведи first и second двумя print"`,
+ 'Если сразу написать <code>first = second</code>, меч потеряется. Нужна третья коробка, куда его временно спрятать.','<code>temp = first</code>, потом <code>first = second</code>, потом <code>second = temp</code>.','first = "меч"\nsecond = "щит"\ntemp = first\nfirst = second\nsecond = temp\nprint(first)\nprint(second)')
+ ]},
+
+/* ================= 3. РЕКА ================= */
+{id:'l3', emoji:'🌊', place:'Река', title:'Числа и арифметика',
+ story:'Через реку плывёт злой пескарь-монстр. Герою нужно считать урон и лечение. А Python отлично считает.',
+ lessons:[
+ {t:'Знаки действий', h:`<p>Python — это ещё и мощный калькулятор:</p>
+<pre class="ex">print(10 + 4)   # сложение
+print(10 - 4)   # вычитание
+print(10 * 4)   # умножение
+print(10 / 4)   # деление</pre>
+<pre class="screen">14
+6
+40
+2.5</pre>
+<p>Деление <code>/</code> всегда даёт число с точкой: <code>10 / 2</code> будет <code>5.0</code>. Дробную часть пишут через <b>точку</b>, а не запятую: <code>2.5</code>.</p>`},
+ {t:'Целое деление и остаток', h:`<p>Представь: у героя 7 монет, и их надо разложить по 2 мешкам поровну.</p>
+<pre class="ex">print(7 // 2)   # сколько целых монет в каждом мешке
+print(7 % 2)    # сколько монет останется
+print(2 ** 3)   # степень: 2 в третьей степени</pre>
+<pre class="screen">3
+1
+8</pre>
+<ul><li><code>//</code> — целое деление, без остатка;</li><li><code>%</code> — остаток от деления;</li><li><code>**</code> — возведение в степень.</li></ul>
+<p>Остаток часто нужен, чтобы проверить чётность: <code>n % 2</code> равно 0 у чётных чисел.</p>`},
+ {t:'Порядок действий и скобки', h:`<p>Python считает как в школе: сначала умножение и деление, потом сложение и вычитание. Скобки делают нужное действие первым.</p>
+<pre class="ex">print(2 + 3 * 4)
+print((2 + 3) * 4)</pre>
+<pre class="screen">14
+20</pre>
+<p>В первой строке сначала 3 * 4 = 12, потом + 2. Во второй сначала скобки: 2 + 3 = 5, потом * 4.</p>
+<p>Результат можно сохранить в переменную: <code>hp = hp - 15 * 2</code>.</p>`},
+ {t:'⚠️ Частые ошибки', h:`<ul><li><b>Текст и число вместе:</b> <code>"5" + 3</code> даст <code>TypeError</code>. <code>"5"</code> в кавычках — это текст, а не число.</li>
+<li><b>Запятая вместо точки:</b> <code>2,5</code> Python поймёт как два числа. Дробь пишут <code>2.5</code>.</li>
+<li><b>Забыл знак:</b> <code>2(3 + 4)</code> не работает, нужно <code>2 * (3 + 4)</code>.</li></ul>`}
+ ],
+ tasks:[
+ T('У героя <code>hp = 100</code>, один укус отнимает <code>damage = 15</code>. Вычти из <code>hp</code> два укуса и выведи <code>hp</code>.','hp = 100\ndamage = 15\n# Герой получил два укуса. Посчитай hp и выведи его\n',
+ String.raw`assert globals().get("hp") == 70, "После двух укусов hp должно стать 70"
+assert out.strip() == "70", "Выведи hp командой print(hp)"`,
+ 'Два укуса — это <code>damage * 2</code>.','<code>hp = hp - damage * 2</code>, потом <code>print(hp)</code>.','hp = 100\ndamage = 15\nhp = hp - damage * 2\nprint(hp)'),
+ T('Герой выпил зелье: <code>hp</code> вырос на <code>potion</code>. Посчитай новое <code>hp</code> и выведи его.','hp = 40\npotion = 25\n# Вылечи героя и выведи hp\n',
+ String.raw`assert globals().get("hp") == 65, "После зелья hp должно быть 65"
+assert out.strip() == "65", "Выведи hp"`,
+ 'Нужно сложение: <code>hp + potion</code>.','<code>hp = hp + potion</code>, потом <code>print(hp)</code>.','hp = 40\npotion = 25\nhp = hp + potion\nprint(hp)'),
+ T('Раздели 17 монет между 5 друзьями. Выведи на первой строке, сколько монет получит каждый (целое число), на второй сколько останется.','',
+ String.raw`assert "//" in src and "%" in src, "Нужны // (целое деление) и % (остаток)"
+assert lines == ["3", "2"], "Каждому по 3 монеты, остаётся 2"`,
+ 'Целое деление: <code>17 // 5</code>. Остаток: <code>17 % 5</code>.','Два print: в первом <code>17 // 5</code>, во втором <code>17 % 5</code>.','print(17 // 5)\nprint(17 % 5)'),
+ T('Площадь комнаты. Есть ширина <code>w</code> и высота <code>h</code>. Создай переменную <code>area</code>, равную их произведению, и выведи её.','w = 6\nh = 4\n# Посчитай area и выведи его\n',
+ String.raw`assert globals().get("area") == 24, "area должна быть 24 (6 * 4)"
+assert out.strip() == "24", "Выведи area"`,
+ 'Площадь это ширина умножить на высоту.','<code>area = w * h</code>, потом <code>print(area)</code>.','w = 6\nh = 4\narea = w * h\nprint(area)'),
+ T('Выведи результат <code>(10 + 5) * 3</code>. Скобки обязательны: без них получится другое число.','',
+ String.raw`assert "(" in src, "Нужны скобки"
+assert out.strip() == "45", "Должно получиться 45"`,
+ 'Скобки заставляют сложение выполниться первым.','<code>print((10 + 5) * 3)</code>. Внешняя скобка для print, внутренняя для сложения.','print((10 + 5) * 3)')
+ ]},
+
+/* ================= 4. ПЕЩЕРА ================= */
+{id:'l4', emoji:'🕳️', place:'Пещера', title:'Строки и f-строки',
+ story:'На стене пещеры надпись: «Назови себя». Герою придётся складывать слова и подставлять в них значения.',
+ lessons:[
+ {t:'Строка и склейка', h:`<p>Строка — это любой текст в кавычках. Строки можно склеивать знаком <code>+</code> и повторять знаком <code>*</code>:</p>
+<pre class="ex">print("Меч" + "огня")
+print("Меч " + "огня")
+print("ха" * 3)</pre>
+<pre class="screen">Мечогня
+Меч огня
+хахаха</pre>
+<p>Пробел при склейке не появляется сам. Если он нужен, кладём его внутрь кавычек: <code>"Меч "</code>.</p>`},
+ {t:'f-строки: подставляем переменные', h:`<p>Склеивать много кусочков неудобно. Поэтому есть f-строки:</p>
+<pre class="ex">name = "Артур"
+level = 3
+print(f"Герой {name}, уровень {level}")</pre>
+<pre class="screen">Герой Артур, уровень 3</pre>
+<p>Разбор по частям:</p>
+<ul><li>буква <code>f</code> прямо перед кавычкой говорит: «это особая строка, в ней есть подстановки»;</li><li><code>{name}</code> — фигурные скобки значат: «вместо этого подставь значение переменной name»;</li><li>всё остальное выводится как обычный текст.</li></ul>
+<p>Внутри скобок можно считать: <code>f"Сумма: {2 + 3}"</code> выведет <code>Сумма: 5</code>.</p>`},
+ {t:'Полезные команды для текста', h:`<p>У строк есть встроенные «умения». Их вызывают через точку:</p>
+<pre class="ex">word = "Дракон"
+print(word.upper())   # ВСЕ БОЛЬШИЕ
+print(word.lower())   # все маленькие
+print(len(word))      # длина: сколько букв</pre>
+<pre class="screen">ДРАКОН
+дракон
+6</pre>
+<p><code>len()</code> (от length — длина) работает и со списками, о них будет на Рынке.</p>`},
+ {t:'⚠️ Частые ошибки', h:`<ul><li><b>Забыл букву f:</b> <code>print("Герой {name}")</code> выведет буквально <code>Герой {name}</code>.</li>
+<li><b>Текст + число:</b> <code>"Уровень " + 3</code> даёт <code>TypeError</code>. Выход: f-строка <code>f"Уровень {3}"</code> или <code>str(3)</code>.</li>
+<li><b>Фигурные скобки:</b> в f-строке нужны именно <code>{ }</code>, а не обычные <code>( )</code>.</li></ul>`}
+ ],
+ tasks:[
+ T('Выведи через f-строку: <code>Герой Артур, уровень 3</code>. Имя и уровень бери из переменных.','name = "Артур"\nlevel = 3\n# Выведи: Герой Артур, уровень 3\n',
+ String.raw`assert 'f"' in src or "f'" in src, "Используй f-строку: print(f\"...\")"
+assert "{name}" in src and "{level}" in src, "Подставь переменные: {name} и {level}"
+assert out.strip() == "Герой Артур, уровень 3", "Должно получиться: Герой Артур, уровень 3"`,
+ 'Начни так: <code>print(f"Герой ...</code>','<code>{name}</code> подставит имя, <code>{level}</code> подставит уровень.','name = "Артур"\nlevel = 3\nprint(f"Герой {name}, уровень {level}")'),
+ T('Склей два слова с пробелом: выведи <code>Меч огня</code>, используя переменные <code>first</code> и <code>second</code> и знак <code>+</code>.','first = "Меч"\nsecond = "огня"\n# Склей слова через +\n',
+ String.raw`assert "+" in src, "Склей слова знаком +"
+assert out.strip() == "Меч огня", "Должно получиться: Меч огня (с пробелом)"`,
+ 'Пробел нужно добавить самому: <code>" "</code> в кавычках.','<code>first + " " + second</code>','first = "Меч"\nsecond = "огня"\nprint(first + " " + second)'),
+ T('Эхо пещеры: выведи <code>Эй!</code> три раза в одной строке через пробел, используя умножение строки.','',
+ String.raw`assert "*" in src, "Используй умножение строки: *"
+assert out.strip() == "Эй! Эй! Эй!", "Должно получиться: Эй! Эй! Эй!"`,
+ 'Строку можно умножать на число: <code>"ха" * 3</code>.','Нужен пробел между словами: умножай <code>"Эй! "</code> с пробелом внутри кавычек.','print("Эй! " * 3)'),
+ T('Дракон кричит! Выведи слово из переменной <code>word</code> ЗАГЛАВНЫМИ буквами.','word = "дракон"\n# Выведи word большими буквами\n',
+ String.raw`assert "upper" in src, "Используй .upper()"
+assert out.strip() == "ДРАКОН", "Должно получиться: ДРАКОН"`,
+ 'У строки есть умение <code>.upper()</code>, оно пишется через точку после имени.','<code>print(word.upper())</code>','word = "дракон"\nprint(word.upper())'),
+ T('Выведи f-строкой: <code>В имени Александр 9 букв</code>. Количество букв посчитай через <code>len()</code>, не пиши 9 вручную.','name = "Александр"\n# Используй f-строку и len(name)\n',
+ String.raw`assert "len" in src, "Посчитай длину через len()"
+assert 'f"' in src or "f'" in src, "Используй f-строку"
+assert out.strip() == "В имени Александр 9 букв", "Должно получиться: В имени Александр 9 букв"`,
+ 'Внутри фигурных скобок можно вызывать команды: <code>{len(name)}</code>.','<code>f"В имени {name} {len(name)} букв"</code>','name = "Александр"\nprint(f"В имени {name} {len(name)} букв")')
+ ]},
+
+/* ================= 5. МОСТ ================= */
+{id:'l5', emoji:'🌉', place:'Мост', title:'Условия: if, elif, else',
+ story:'Тролль охраняет мост. Он проверяет героя и решает, пропускать или нет. Так Python принимает решения.',
+ lessons:[
+ {t:'Сравнения: вопросы для Python', h:`<p>Условие — это вопрос, на который можно ответить «да» или «нет». В Python это <code>True</code> (да) и <code>False</code> (нет).</p>
+<pre class="ex">print(5 > 3)
+print(5 == 3)
+print(10 >= 10)</pre>
+<pre class="screen">True
+False
+True</pre>
+<ul><li><code>&gt;</code> больше, <code>&lt;</code> меньше</li><li><code>&gt;=</code> больше или равно («не меньше»), <code>&lt;=</code> меньше или равно («не больше»)</li><li><code>==</code> равно (два знака!), <code>!=</code> не равно</li></ul>
+<p>Один знак <code>=</code> кладёт значение в переменную, а два <code>==</code> спрашивают «равно ли?».</p>`},
+ {t:'if и else', h:`<p><code>if</code> по-английски «если», <code>else</code> — «иначе».</p>
+<pre class="ex">gold = 12
+if gold >= 10:
+    print("Мост открыт")
+else:
+    print("Мост закрыт")</pre>
+<pre class="screen">Мост открыт</pre>
+<p>Разбор:</p>
+<ul><li><code>if gold >= 10:</code> — «если золота не меньше 10». В конце обязательно двоеточие;</li><li>строка под ним сдвинута на <b>4 пробела</b>. Так Python понимает, что она выполняется только если условие верно;</li><li><code>else:</code> — «иначе», то есть если условие неверно. Тоже с двоеточием и отступом.</li></ul>
+<p>Выполнится ровно одна ветка, не обе сразу.</p>`},
+ {t:'elif: несколько вариантов', h:`<p>Когда вариантов больше двух, между if и else ставят <code>elif</code> («иначе если»):</p>
+<pre class="ex">hp = 50
+if hp > 70:
+    print("Здоров")
+elif hp > 30:
+    print("Ранен")
+else:
+    print("Тяжело ранен")</pre>
+<pre class="screen">Ранен</pre>
+<p>Python проверяет сверху вниз и останавливается на первом верном условии. Поэтому порядок важен.</p>`},
+ {t:'and и or: сложные условия', h:`<p>Условия можно объединять:</p>
+<ul><li><code>and</code> («и») — верно, когда верны оба условия;</li><li><code>or</code> («или») — верно, когда верно хотя бы одно.</li></ul>
+<pre class="ex">age = 20
+has_ticket = True
+if age >= 18 and has_ticket:
+    print("Проходи")</pre>
+<pre class="screen">Проходи</pre>
+<p><b>⚠️ Частые ошибки:</b> забыть двоеточие, не сдвинуть строку на 4 пробела, написать один <code>=</code> вместо <code>==</code>.</p>`}
+ ],
+ tasks:[
+ T('Если <code>gold</code> не меньше 10, выведи <code>Мост открыт</code>, иначе <code>Мост закрыт</code>.','gold = 12\n# Проверь gold и выведи нужную фразу\n',
+ String.raw`assert "if" in src and "else" in src, "Нужны if и else"
+assert out.strip() == "Мост открыт", "При gold = 12 мост должен открыться"
+assert rerun("gold", 5) == "Мост закрыт", "При gold = 5 должно быть: Мост закрыт. Проверь ветку else"`,
+ '<code>if gold >= 10:</code> и не забудь двоеточие.','После <code>else:</code> тоже двоеточие, а строки внутри сдвинь на 4 пробела.','gold = 12\nif gold >= 10:\n    print("Мост открыт")\nelse:\n    print("Мост закрыт")'),
+ T('Чётное или нет? Если число <code>n</code> чётное, выведи <code>чётное</code>, иначе <code>нечётное</code>. Подсказка из урока про остаток: у чётных <code>n % 2</code> равно 0.','n = 7\n# Определи, чётное ли n\n',
+ String.raw`assert "%" in src, "Используй остаток от деления %"
+assert out.strip() == "нечётное", "7 нечётное"
+assert rerun("n", 8) == "чётное", "Для n = 8 должно быть: чётное"`,
+ 'Условие: <code>n % 2 == 0</code>. Два знака равенства!','<code>if n % 2 == 0:</code> → print("чётное"), <code>else:</code> → print("нечётное").','n = 7\nif n % 2 == 0:\n    print("чётное")\nelse:\n    print("нечётное")'),
+ T('Состояние героя. Если <code>hp</code> больше 70 → <code>Здоров</code>, если больше 30 → <code>Ранен</code>, иначе → <code>Тяжело ранен</code>. Используй elif.','hp = 35\n# Определи состояние героя\n',
+ String.raw`assert "elif" in src, "Используй elif"
+assert out.strip() == "Ранен", "При hp = 35 должно быть: Ранен"
+assert rerun("hp", 90) == "Здоров", "При hp = 90 должно быть: Здоров"
+assert rerun("hp", 10) == "Тяжело ранен", "При hp = 10 должно быть: Тяжело ранен"`,
+ 'Структура: <code>if</code> → <code>elif</code> → <code>else</code>, у первых двух есть условие, у else нет.','<code>if hp > 70:</code> … <code>elif hp > 30:</code> … <code>else:</code>','hp = 35\nif hp > 70:\n    print("Здоров")\nelif hp > 30:\n    print("Ранен")\nelse:\n    print("Тяжело ранен")'),
+ T('Вход в замок. Пропускают, если <code>age</code> не меньше 18 И есть билет (<code>has_ticket</code>). Тогда выведи <code>Проходи</code>, иначе <code>Стой</code>.','age = 20\nhas_ticket = True\n# Реши, пропускать ли\n',
+ String.raw`assert "and" in src, "Используй and"
+assert out.strip() == "Проходи", "При age = 20 и билете нужно: Проходи"
+assert rerun("has_ticket", False) == "Стой", "Без билета должно быть: Стой"
+assert rerun("age", 15) == "Стой", "При age = 15 должно быть: Стой"`,
+ 'Оба условия соединяются словом <code>and</code>.','<code>if age >= 18 and has_ticket:</code>','age = 20\nhas_ticket = True\nif age >= 18 and has_ticket:\n    print("Проходи")\nelse:\n    print("Стой")'),
+ T('Пароль у стражника. Если <code>password</code> равен <code>"дракон"</code>, выведи <code>Верно</code>, иначе <code>Неверно</code>.','password = "дракон"\n# Проверь пароль\n',
+ String.raw`assert "==" in src, "Для сравнения используй == (два знака)"
+assert out.strip() == "Верно", "Пароль «дракон» верный"
+assert rerun("password", "орк") == "Неверно", "Для другого пароля должно быть: Неверно"`,
+ 'Сравнение на равенство — два знака: <code>==</code>.','<code>if password == "дракон":</code>','password = "дракон"\nif password == "дракон":\n    print("Верно")\nelse:\n    print("Неверно")')
+ ]},
+
+/* ================= 6. БАШНЯ ================= */
+{id:'l6', emoji:'🗼', place:'Башня', title:'Циклы: for и while',
+ story:'Чтобы подняться на башню, герою нужно пройти много ступенек. Повторять одно и то же вручную скучно, для этого есть циклы.',
+ lessons:[
+ {t:'for и range: повторяем N раз', h:`<p>Цикл повторяет блок кода несколько раз.</p>
+<pre class="ex">for i in range(1, 4):
+    print(i)</pre>
+<pre class="screen">1
+2
+3</pre>
+<p>Разбор строки <code>for i in range(1, 4):</code>:</p>
+<ul><li><code>for</code> — «для каждого», команда «повтори»;</li><li><code>i</code> — имя, которое придумали мы (можно <code>step</code>, <code>n</code>, как угодно). На каждом круге в него кладётся следующее число;</li><li><code>in</code> — «из»;</li><li><code>range(1, 4)</code> — набор чисел от 1 до 3. <b>Последнее число (4) не входит!</b>;</li><li><code>:</code> — «дальше идёт то, что нужно повторить»;</li><li>строка <code>print(i)</code> сдвинута на 4 пробела: так Python знает, что она внутри цикла.</li></ul>
+<p>Круг за кругом: i = 1 → выводим 1, i = 2 → выводим 2, i = 3 → выводим 3.</p>`},
+ {t:'Варианты range и цикл по буквам', h:`<pre class="ex">range(5)          # 0, 1, 2, 3, 4   (с нуля!)
+range(1, 6)       # 1, 2, 3, 4, 5
+range(2, 11, 2)   # 2, 4, 6, 8, 10   (шаг 2)
+range(5, 0, -1)   # 5, 4, 3, 2, 1    (шаг -1, назад)</pre>
+<p>Третье число — шаг. Положительный идёт вперёд, отрицательный назад.</p>
+<p>Цикл может идти и по буквам текста:</p>
+<pre class="ex">for letter in "меч":
+    print(letter)</pre>
+<pre class="screen">м
+е
+ч</pre>`},
+ {t:'Накопление: считаем сумму', h:`<p>Частая задача: сложить много чисел. Заводим коробку со стартовым нулём и в цикле добавляем.</p>
+<pre class="ex">total = 0
+for i in range(1, 4):
+    total = total + i
+print(total)</pre>
+<pre class="screen">6</pre>
+<p>Что происходит по кругам:</p>
+<ul><li>старт: total = 0</li><li>i = 1 → total = 0 + 1 = 1</li><li>i = 2 → total = 1 + 2 = 3</li><li>i = 3 → total = 3 + 3 = 6</li></ul>
+<p>Последний <code>print(total)</code> стоит <b>без отступа</b>, значит он выполняется один раз после цикла.</p>`},
+ {t:'while: пока условие верно', h:`<p><code>while</code> («пока») повторяет код, пока условие остаётся верным:</p>
+<pre class="ex">hp = 10
+while hp > 0:
+    hp = hp - 4
+    print(hp)</pre>
+<pre class="screen">6
+2
+-2</pre>
+<p>Когда <code>hp</code> стало -2, условие <code>hp > 0</code> неверно, и цикл остановился.</p>
+<p><b>⚠️ Осторожно:</b> если условие никогда не станет неверным, цикл бесконечный. В игре у тебя есть защита: через 6 секунд код остановится. <b>Другие ошибки:</b> забыть двоеточие, не сдвинуть строку, забыть, что range(5) начинается с нуля.</p>`}
+ ],
+ tasks:[
+ T('Выведи числа от 1 до 5, каждое на новой строке.','# Используй for и range\n',
+ String.raw`assert "for" in src and "range" in src, "Используй for и range"
+assert lines == ["1","2","3","4","5"], "Нужно вывести 1, 2, 3, 4, 5, каждое на своей строке"`,
+ '<code>range(1, 6)</code> даёт числа от 1 до 5.','Внутри цикла строка со сдвигом: <code>    print(i)</code>.','for i in range(1, 6):\n    print(i)'),
+ T('Обратный отсчёт: выведи числа от 5 до 1, а потом слово <code>Старт!</code>.','',
+ String.raw`assert "range" in src, "Используй range с отрицательным шагом"
+assert lines == ["5","4","3","2","1","Старт!"], "Нужно: 5, 4, 3, 2, 1, Старт! (каждое на своей строке)"`,
+ 'Назад идёт отрицательный шаг: <code>range(5, 0, -1)</code>.','Слово «Старт!» выводится после цикла, без отступа.','for i in range(5, 0, -1):\n    print(i)\nprint("Старт!")'),
+ T('Выведи чётные числа от 2 до 10 (2, 4, 6, 8, 10), каждое на новой строке. Используй шаг в range.','',
+ String.raw`assert "range" in src, "Используй range"
+assert lines == ["2","4","6","8","10"], "Нужно: 2, 4, 6, 8, 10"`,
+ 'Третье число в range — шаг.','<code>range(2, 11, 2)</code>','for i in range(2, 11, 2):\n    print(i)'),
+ T('Посчитай сумму чисел от 1 до 10 в переменной <code>total</code> и выведи её.','total = 0\n# Пройди числа от 1 до 10 и прибавляй их к total\n',
+ String.raw`assert "for" in src, "Используй цикл for"
+assert globals().get("total") == 55, "total должна быть 55"
+assert out.strip() == "55", "Выведи total после цикла"`,
+ 'В цикле: <code>total = total + i</code>.','Диапазон <code>range(1, 11)</code>, а <code>print(total)</code> без отступа после цикла.','total = 0\nfor i in range(1, 11):\n    total = total + i\nprint(total)'),
+ T('Выведи каждую букву слова из переменной <code>word</code> на отдельной строке.','word = "меч"\n# Пройди по буквам\n',
+ String.raw`assert "for" in src, "Используй for"
+assert lines == ["м","е","ч"], "Нужно: м, е, ч (каждая на своей строке)"`,
+ 'Цикл может идти прямо по слову: <code>for letter in word:</code>','Внутри цикла выводи <code>letter</code>.','word = "меч"\nfor letter in word:\n    print(letter)'),
+ T('🔥 Дракон бьёт героя. Пока <code>hp</code> больше 0, отнимай по 7 и выводи текущее <code>hp</code> после каждого удара. Используй while.','hp = 20\n# Пока hp > 0, отнимай по 7 и выводи hp\n',
+ String.raw`assert "while" in src, "Используй while"
+assert lines == ["13","6","-1"], "Должно получиться три строки: 13, 6, -1"`,
+ 'Условие цикла: <code>while hp > 0:</code>','Внутри цикла два действия: отнять 7 и вывести hp.','hp = 20\nwhile hp > 0:\n    hp = hp - 7\n    print(hp)')
+ ]},
+
+/* ================= 7. РЫНОК ================= */
+{id:'l7', emoji:'🏪', place:'Рынок', title:'Списки',
+ story:'На рынке герой собирает снаряжение. Всё нужное лежит в одной сумке: в списке.',
+ lessons:[
+ {t:'Что такое список', h:`<p>Список — это сумка, в которой лежит много значений по порядку.</p>
+<pre class="ex">bag = ["меч", "щит", "зелье"]
+print(bag)
+print(len(bag))</pre>
+<pre class="screen">['меч', 'щит', 'зелье']
+3</pre>
+<ul><li>список пишут в квадратных скобках <code>[ ]</code>, значения через запятую;</li><li><code>len(bag)</code> — сколько в нём предметов.</li></ul>
+<p>У каждого предмета есть номер (индекс). <b>Считают с нуля!</b></p>
+<pre class="ex">print(bag[0])    # первый
+print(bag[1])    # второй
+print(bag[-1])   # последний</pre>
+<pre class="screen">меч
+щит
+зелье</pre>`},
+ {t:'Добавить, убрать, проверить', h:`<pre class="ex">bag = ["меч", "щит"]
+bag.append("зелье")   # добавить в конец
+bag.remove("щит")     # убрать по названию
+print(bag)
+print("меч" in bag)   # есть ли в сумке?</pre>
+<pre class="screen">['меч', 'зелье']
+True</pre>
+<p>Слово <code>in</code> спрашивает «есть ли в списке?» и отвечает True или False. Удобно в <code>if</code>:</p>
+<pre class="ex">if "зелье" in bag:
+    print("Лечимся!")</pre>`},
+ {t:'for по списку: разбор строки', h:`<pre class="ex">bag = ["меч", "щит", "зелье"]
+for x in bag:
+    print(x)</pre>
+<pre class="screen">меч
+щит
+зелье</pre>
+<p>Разберём <code>for x in bag:</code> по словам:</p>
+<ul><li><code>for</code> — «для каждого»;</li><li><code>x</code> — имя, которое мы придумали сами. Это «временная коробка», в которую Python по очереди кладёт предметы. Можно назвать <code>item</code> или <code>вещь</code>, смысл тот же;</li><li><code>in bag</code> — «из списка bag»;</li><li><code>:</code> — дальше идёт то, что делать с каждым.</li></ul>
+<p>Что происходит по кругам: x = "меч" → print(x); x = "щит" → print(x); x = "зелье" → print(x). Когда предметы закончились, цикл сам останавливается.</p>`},
+ {t:'Полезные команды и ошибки', h:`<pre class="ex">prices = [10, 25, 5, 40]
+print(sum(prices))      # сумма: 80
+print(max(prices))      # наибольшее: 40
+print(min(prices))      # наименьшее: 5
+print(sorted(prices))   # по возрастанию</pre>
+<pre class="screen">80
+40
+5
+[5, 10, 25, 40]</pre>
+<p><b>⚠️ Частые ошибки:</b> <code>IndexError</code> — запросили номер, которого нет (в списке из 3 предметов нет <code>bag[3]</code>, последний это <code>bag[2]</code>); забыли, что счёт идёт с нуля; <code>remove</code> убирает только то, что реально есть в списке.</p>`}
+ ],
+ tasks:[
+ T('Добавь в <code>items</code> предмет <code>"лук"</code>. Потом для каждого предмета выведи <code>Куплено: предмет</code>.','items = ["меч", "щит", "зелье"]\n# Добавь лук и выведи покупки\n',
+ String.raw`it = globals().get("items")
+assert it and len(it) == 4 and "лук" in it, "В списке items должно появиться «лук»"
+assert "for" in src, "Пройди по списку циклом for"
+assert lines == ["Куплено: меч","Куплено: щит","Куплено: зелье","Куплено: лук"], "Каждая строка: Куплено: предмет"`,
+ '<code>items.append("лук")</code> добавит лук.','Цикл: <code>for item in items:</code> и внутри <code>print("Куплено: " + item)</code>.','items = ["меч", "щит", "зелье"]\nitems.append("лук")\nfor item in items:\n    print("Куплено: " + item)'),
+ T('Выведи первый и последний предмет списка на двух строках. Номера: первый это 0, последний можно получить через -1.','items = ["меч", "щит", "лук", "зелье", "карта"]\n# Выведи первый и последний предмет\n',
+ String.raw`assert "[0]" in src and ("[-1]" in src or "len(" in src), "Используй номера: [0] и [-1]"
+assert lines == ["меч", "карта"], "Нужно вывести меч и карта (каждый на своей строке)"`,
+ 'Первый предмет: <code>items[0]</code>.','Последний: <code>items[-1]</code>.','items = ["меч", "щит", "лук", "зелье", "карта"]\nprint(items[0])\nprint(items[-1])'),
+ T('Герой продал щит. Убери <code>"щит"</code> из списка и выведи весь список.','items = ["меч", "щит", "лук"]\n# Убери щит и выведи список\n',
+ String.raw`assert "remove" in src, "Используй .remove()"
+assert out.strip() == "['меч', 'лук']", "Должно получиться: ['меч', 'лук']"`,
+ 'Убрать по названию: <code>items.remove("щит")</code>.','Потом <code>print(items)</code>. Список выведется со скобками.','items = ["меч", "щит", "лук"]\nitems.remove("щит")\nprint(items)'),
+ T('Даны цены. Выведи на первой строке сумму всех цен, на второй самую большую.','prices = [10, 25, 5, 40]\n# Сумма и максимум\n',
+ String.raw`assert "sum" in src and "max" in src, "Используй sum() и max()"
+assert lines == ["80", "40"], "Нужно: 80 и 40, каждое на своей строке"`,
+ '<code>sum(prices)</code> считает сумму, <code>max(prices)</code> находит наибольшее.','Выводи каждое в своём print.','prices = [10, 25, 5, 40]\nprint(sum(prices))\nprint(max(prices))'),
+ T('Проверь сумку: если в <code>items</code> есть <code>"зелье"</code>, выведи <code>Есть зелье</code>, иначе <code>Нужно купить зелье</code>.','items = ["меч", "щит"]\n# Проверь, есть ли зелье\n',
+ String.raw`assert " in " in src, "Используй слово in"
+assert out.strip() == "Нужно купить зелье", "В сумке нет зелья, должно быть: Нужно купить зелье"
+assert rerun("items", ["меч", "зелье"]) == "Есть зелье", "Если зелье в сумке, должно быть: Есть зелье"`,
+ 'Условие: <code>"зелье" in items</code>.','<code>if "зелье" in items:</code> … <code>else:</code>','items = ["меч", "щит"]\nif "зелье" in items:\n    print("Есть зелье")\nelse:\n    print("Нужно купить зелье")'),
+ T('Выведи список <code>numbers</code> по возрастанию.','numbers = [3, 8, 1, 9]\n# Отсортируй и выведи\n',
+ String.raw`assert "sort" in src, "Используй sorted() или .sort()"
+assert out.strip() == "[1, 3, 8, 9]", "Должно получиться: [1, 3, 8, 9]"`,
+ 'Есть команда <code>sorted(...)</code>, она возвращает отсортированный список.','<code>print(sorted(numbers))</code>','numbers = [3, 8, 1, 9]\nprint(sorted(numbers))')
+ ]},
+
+/* ================= 8. ЗАМОК ================= */
+{id:'l8', emoji:'🏰', place:'Замок', title:'Функции',
+ story:'Маг замка учит героя заклинаниям. Заклинание придумываешь один раз, а потом можно колдовать сколько угодно.',
+ lessons:[
+ {t:'Что такое функция', h:`<p>Функция — это своя команда. Ты один раз пишешь, что она делает, и потом вызываешь её по имени.</p>
+<pre class="ex">def heal(hp, potion):
+    return hp + potion
+
+print(heal(50, 20))</pre>
+<pre class="screen">70</pre>
+<p>Разбор первой строки:</p>
+<ul><li><code>def</code> — от define, «определить». Так начинается создание функции;</li><li><code>heal</code> — имя, которое придумали мы;</li><li><code>(hp, potion)</code> — параметры: «коробки», в которые функция получает данные;</li><li><code>:</code> — дальше идёт тело функции;</li><li>строки внутри сдвинуты на 4 пробела.</li></ul>`},
+ {t:'return и вызов', h:`<p><code>return</code> («вернуть») отдаёт результат наружу. Вызов <code>heal(50, 20)</code> значит: «выполни функцию, положив 50 в hp и 20 в potion».</p>
+<p>Порядок: 50 попало в первый параметр, 20 во второй. Функцию можно вызывать много раз с разными данными:</p>
+<pre class="ex">print(heal(50, 20))
+print(heal(10, 5))</pre>
+<pre class="screen">70
+15</pre>
+<p>Важно: само по себе <code>def</code> ничего не выполняет, оно только описывает заклинание. Работать функция начинает, когда её вызвали.</p>`},
+ {t:'return и print: в чём разница', h:`<ul><li><code>return</code> отдаёт значение тому, кто вызвал функцию. Это значение можно сохранить в переменную или вывести;</li><li><code>print</code> только показывает текст на экране, ничего не отдавая.</li></ul>
+<pre class="ex">def double(x):
+    return x * 2
+
+result = double(4)
+print(result)</pre>
+<pre class="screen">8</pre>
+<p>Функция может отдавать и <code>True</code> / <code>False</code>:</p>
+<pre class="ex">def is_big(n):
+    return n > 100</pre>
+<p>Если в функции нет return, она вернёт <code>None</code> («ничего»).</p>`},
+ {t:'⚠️ Частые ошибки', h:`<ul><li><b>Вызов до создания:</b> функцию надо описать выше, чем вызывать.</li><li><b>Забыл return:</b> вместо результата получишь <code>None</code>.</li><li><b>Забыл отступ</b> у тела функции (<code>IndentationError</code>) или двоеточие после скобок.</li><li><b>Не те аргументы:</b> если функция ждёт 2 значения, а ты передал 1, будет <code>TypeError</code>.</li></ul>`}
+ ],
+ tasks:[
+ T('Создай функцию <code>heal(hp, potion)</code>, которая возвращает <code>hp + potion</code>. Выведи <code>heal(50, 20)</code>.','# Создай функцию heal и вызови её\n',
+ String.raw`h = globals().get("heal")
+assert callable(h), "Нужна функция heal"
+assert "return" in src, "Функция должна возвращать результат через return"
+assert h(10, 5) == 15 and h(50, 20) == 70, "heal(hp, potion) должна вернуть hp + potion"
+assert out.strip() == "70", "Выведи результат: print(heal(50, 20))"`,
+ '<code>def heal(hp, potion):</code> и двоеточие в конце.','Внутри функции, со сдвигом: <code>    return hp + potion</code>.','def heal(hp, potion):\n    return hp + potion\n\nprint(heal(50, 20))'),
+ T('Создай функцию <code>double(x)</code>, которая возвращает число, умноженное на 2. Выведи <code>double(21)</code>.','',
+ String.raw`d = globals().get("double")
+assert callable(d), "Нужна функция double"
+assert d(4) == 8 and d(0) == 0 and d(-3) == -6, "double(x) должна возвращать x * 2"
+assert out.strip() == "42", "Выведи double(21)"`,
+ 'Один параметр: <code>def double(x):</code>','<code>return x * 2</code>','def double(x):\n    return x * 2\n\nprint(double(21))'),
+ T('Создай функцию <code>greet(name)</code>, которая возвращает строку <code>Привет, имя!</code>. Выведи <code>greet("Лея")</code>.','',
+ String.raw`g = globals().get("greet")
+assert callable(g), "Нужна функция greet"
+assert g("Артур") == "Привет, Артур!", "greet(name) должна вернуть: Привет, имя!"
+assert out.strip() == "Привет, Лея!", "Выведи greet(\"Лея\")"`,
+ 'Внутри можно использовать f-строку.','<code>return f"Привет, {name}!"</code>','def greet(name):\n    return f"Привет, {name}!"\n\nprint(greet("Лея"))'),
+ T('Создай функцию <code>is_alive(hp)</code>, которая возвращает <code>True</code>, если <code>hp</code> больше 0, и <code>False</code> иначе. Выведи <code>is_alive(10)</code>.','',
+ String.raw`f = globals().get("is_alive")
+assert callable(f), "Нужна функция is_alive"
+assert f(5) is True and f(0) is False and f(-3) is False, "is_alive(hp) должна возвращать True при hp > 0 и False иначе"
+assert out.strip() == "True", "Выведи is_alive(10)"`,
+ 'Сравнение само по себе даёт True или False.','<code>return hp > 0</code>','def is_alive(hp):\n    return hp > 0\n\nprint(is_alive(10))'),
+ T('Создай функцию <code>show_hp(hp)</code>, которая САМА ВЫВОДИТ <code>HP: число</code> (через print, без return). Вызови <code>show_hp(100)</code>.','',
+ String.raw`import io, contextlib
+s = globals().get("show_hp")
+assert callable(s), "Нужна функция show_hp"
+b = io.StringIO()
+with contextlib.redirect_stdout(b):
+    s(50)
+assert b.getvalue().strip() == "HP: 50", "show_hp(50) должна вывести: HP: 50"
+assert out.strip() == "HP: 100", "Вызови show_hp(100)"`,
+ 'Эта функция ничего не возвращает, а выводит: внутри будет print.','<code>print(f"HP: {hp}")</code> внутри функции, а потом вызов <code>show_hp(100)</code>.','def show_hp(hp):\n    print(f"HP: {hp}")\n\nshow_hp(100)'),
+ T('🔥 Создай функцию <code>discount(price)</code>. Если цена не меньше 100, верни цену со скидкой 10% (<code>price * 0.9</code>), иначе верни цену без изменений. Выведи <code>discount(200)</code>.','',
+ String.raw`d = globals().get("discount")
+assert callable(d), "Нужна функция discount"
+assert abs(d(200) - 180) < 0.001 and abs(d(100) - 90) < 0.001, "При цене от 100 нужна скидка 10%"
+assert d(50) == 50, "При цене меньше 100 цена не меняется"
+assert out.strip() in ("180", "180.0"), "Выведи discount(200)"`,
+ 'Внутри функции можно использовать if и else, в каждой ветке свой return.','<code>if price >= 100:</code> → <code>return price * 0.9</code>, иначе <code>return price</code>.','def discount(price):\n    if price >= 100:\n        return price * 0.9\n    else:\n        return price\n\nprint(discount(200))')
+ ]},
+
+/* ================= ФИНАЛ: ДРАКОН ================= */
+{id:'boss', boss:true, emoji:'🐉', place:'Логово дракона', title:'Битва с драконом',
+ story:'Дракон проснулся! Победить его можно только четырьмя точными ударами кода. Каждое решённое задание снимает часть его здоровья.',
+ lessons:[
+ {t:'Что пригодится в бою', h:`<ul><li><b>Функции:</b> <code>def</code> и <code>return</code>;</li><li><b>Условия:</b> <code>if</code> / <code>else</code>;</li><li><b>Циклы:</b> <code>for a in attacks:</code> проходит по списку атак;</li><li><b>Накопление:</b> <code>total = total + ...</code> или <code>hp -= ...</code>.</li></ul>
+<p>Знак <code>-=</code> — короткая запись: <code>hp -= 5</code> означает то же, что <code>hp = hp - 5</code>.</p>
+<p>Если застрял, перечитай уроки предыдущих локаций: все приёмы нужны именно оттуда.</p>`}
+ ],
+ tasks:[
+ T('Удар 1. Напиши функцию <code>damage(power)</code>. Если <code>power</code> не меньше 5, удар критический и возвращается <code>power * 2</code>, иначе просто <code>power</code>.','# Напиши функцию damage\n',
+ String.raw`d = globals().get("damage")
+assert callable(d), "Нужна функция damage(power)"
+assert d(5) == 10 and d(10) == 20, "При power от 5 урон удваивается"
+assert d(3) == 3 and d(1) == 1, "При power меньше 5 урон равен power"`,
+ '<code>def damage(power):</code> потом <code>if power >= 5:</code> внутри.','В обеих ветках нужен <code>return</code>.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power',
+ {story:'Первый удар: научи героя бить. Критический удар у дракона срабатывает от силы 5.'}),
+ T('Удар 2. Пройди по списку <code>attacks</code> циклом, посчитай общий урон через <code>damage()</code> и выведи сумму.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\nattacks = [3, 6, 2, 8]\n# Посчитай общий урон и выведи его\n',
+ String.raw`assert "for" in src, "Используй цикл for"
+assert src.count("damage(") >= 2, "Вызови damage() для каждой атаки"
+assert out.strip() == "33", "Общий урон должен быть 33"`,
+ 'Начни с <code>total = 0</code>.','В цикле: <code>total = total + damage(a)</code>, после цикла <code>print(total)</code>.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\nattacks = [3, 6, 2, 8]\ntotal = 0\nfor a in attacks:\n    total = total + damage(a)\nprint(total)',
+ {story:'Дракон рычит. Герой готовит серию из четырёх атак подряд. Функция урона уже написана.'}),
+ T('Удар 3. У дракона <code>hp = 30</code>. Для каждой атаки вычти <code>damage(a)</code> из <code>hp</code>. После цикла: если <code>hp</code> не больше 0, выведи <code>Дракон повержен!</code>, иначе <code>Дракон жив, HP: ...</code>.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\nhp = 30\nattacks = [3, 6, 2, 8]\n# Проведи атаки и объяви результат\n',
+ String.raw`assert "for" in src and "if" in src, "Нужны цикл for и условие if"
+assert globals().get("hp") == -3, "После всех атак hp должно стать -3 (30 − 33)"
+assert out.strip() == "Дракон повержен!", "Если hp <= 0, выведи: Дракон повержен!"`,
+ 'Цикл: <code>for a in attacks:</code> и внутри <code>hp -= damage(a)</code>.','Условие после цикла (без сдвига): <code>if hp <= 0:</code>.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\nhp = 30\nattacks = [3, 6, 2, 8]\nfor a in attacks:\n    hp -= damage(a)\nif hp <= 0:\n    print("Дракон повержен!")\nelse:\n    print(f"Дракон жив, HP: {hp}")',
+ {story:'Финальная серия! Проведи атаки по дракону и узнай, жив ли он.'}),
+ T('Удар 4. Собери всё в одну функцию <code>fight(hp, attacks)</code>: она проходит по атакам, снимает урон через <code>damage()</code> и возвращает <code>True</code>, если дракон повержен (hp не больше 0), иначе <code>False</code>. Выведи <code>fight(30, [3, 6, 2, 8])</code>.','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\n# Напиши функцию fight\n',
+ String.raw`f = globals().get("fight")
+assert callable(f), "Нужна функция fight(hp, attacks)"
+assert f(30, [3, 6, 2, 8]) is True, "fight(30, [3, 6, 2, 8]) должна вернуть True"
+assert f(30, [1, 1]) is False, "fight(30, [1, 1]) должна вернуть False"
+assert f(10, [5]) is True, "fight(10, [5]) должна вернуть True (урон 10)"
+assert out.strip() == "True", "Выведи fight(30, [3, 6, 2, 8])"`,
+ 'Внутри fight цикл <code>for a in attacks:</code> меняет hp.','Последняя строка функции: <code>return hp <= 0</code> (сравнение само даёт True или False).','def damage(power):\n    if power >= 5:\n        return power * 2\n    else:\n        return power\n\ndef fight(hp, attacks):\n    for a in attacks:\n        hp -= damage(a)\n    return hp <= 0\n\nprint(fight(30, [3, 6, 2, 8]))',
+ {story:'Последний рывок. Собери бой в одну функцию, чтобы можно было драться с любым драконом.'})
+ ]}
+];
+/*LEVELS_END*/
+
+/*HARNESS_START*/
+const HARNESS = String.raw`
+import sys, io, json, re, contextlib, traceback
+
+def __fmt(e):
+    if isinstance(e, SyntaxError):
+        return f"{type(e).__name__} в строке {e.lineno}: {e.msg}"
+    ln = None
+    for fr in traceback.extract_tb(e.__traceback__):
+        if fr.filename == "<код>":
+            ln = fr.lineno
+    where = f" в строке {ln}" if ln else ""
+    return f"{type(e).__name__}{where}: {e}"
+
+def __run(code, check):
+    out = io.StringIO()
+    ns = {"__name__": "__main__"}
+    old = sys.stdout
+    sys.stdout = out
+    res = {"ok": True}
+    try:
+        exec(compile(code, "<код>", "exec"), ns)
+    except BaseException as e:
+        res = {"ok": False, "error": __fmt(e)}
+    finally:
+        sys.stdout = old
+    res["out"] = out.getvalue()
+    if res["ok"] and check:
+        env = dict(ns)
+        env["out"] = res["out"]
+        env["src"] = code
+        env["lines"] = res["out"].strip().split("\n") if res["out"].strip() else []
+        def rerun(var, val):
+            new = re.sub(r"(?m)^" + var + r"\s*=.*$", var + " = " + repr(val), code, count=1)
+            b = io.StringIO()
+            with contextlib.redirect_stdout(b):
+                exec(compile(new, "<код>", "exec"), {})
+            return b.getvalue().strip()
+        env["rerun"] = rerun
+        try:
+            exec(check, env)
+        except AssertionError as e:
+            res["passed"] = False
+            res["fail"] = str(e) or "Результат пока не тот."
+        except BaseException as e:
+            res["passed"] = False
+            res["fail"] = "Что-то не так: " + type(e).__name__ + ". Проверь, что код работает с другими значениями."
+        else:
+            res["passed"] = True
+    return json.dumps(res, ensure_ascii=False)
+`;
+/*HARNESS_END*/
+
+const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+const SAVE_KEY = 'pq_save2';
+const RANKS = ['Новичок','Ученик','Оруженосец','Следопыт','Рыцарь кода','Маг Python','Мастер','Легенда'];
+const XP_PER_LEVEL = 300;
+const $ = id => document.getElementById(id);
+const view = $('view');
+
+function mk(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+function html(tag, cls, h){ const e = mk(tag, cls); e.innerHTML = h; return e; }
+
+/* ---------- save ---------- */
+let state = {xp:0, done:{}};
+try{
+  const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+  if(s && typeof s.xp === 'number') state = s;
+  else{
+    const old = JSON.parse(localStorage.getItem('pq_save') || 'null');
+    if(old && old.done){
+      state.xp = old.xp || 0;
+      for(const k in old.done){
+        if(/^l\d$/.test(k)) state.done[k + ':0'] = true;
+        else if(/^b\d$/.test(k)) state.done['boss:' + (Number(k[1]) - 1)] = true;
+      }
+    }
+  }
+}catch(e){}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+const hintsUsed = {};
+const drafts = {};
+
+const key = (loc, i) => loc.id + ':' + i;
+const isDone = (loc, i) => !!state.done[key(loc, i)];
+function progress(loc){ let d = 0; loc.tasks.forEach((t, i) => { if(isDone(loc, i)) d++; }); return {d, n: loc.tasks.length}; }
+const normalLocs = LOCS.filter(l => !l.boss);
+const bossLoc = LOCS.find(l => l.boss);
+const unlocked = idx => idx === 0 || isDone(normalLocs[idx - 1], 0);
+const bossOpen = () => normalLocs.every(l => isDone(l, 0));
+const bossDone = () => progress(bossLoc).d === bossLoc.tasks.length;
+
+function rankInfo(){
+  const lvl = 1 + Math.floor(state.xp / XP_PER_LEVEL);
+  return {lvl, title: RANKS[Math.min(lvl - 1, RANKS.length - 1)], into: state.xp % XP_PER_LEVEL};
+}
+function renderHud(){
+  const r = rankInfo();
+  $('rank').textContent = 'Ур. ' + r.lvl + ' · ' + r.title;
+  $('xp').textContent = state.xp;
+  $('xpBar').style.width = (r.into / XP_PER_LEVEL * 100) + '%';
+}
+
+/* ---------- python worker ---------- */
+let worker = null, workerReady = null, pending = null, seq = 0;
+const WORKER_SRC = `
+importScripts(${JSON.stringify(PYODIDE_URL + 'pyodide.js')});
+let py = null;
+const ready = (async () => {
+  py = await loadPyodide({indexURL: ${JSON.stringify(PYODIDE_URL)}});
+  py.runPython(${JSON.stringify(HARNESS)});
+  postMessage({type: 'ready'});
+})().catch(err => postMessage({type: 'fail', error: String(err)}));
+onmessage = async (e) => {
+  await ready;
+  try{
+    py.globals.set('__code', e.data.code);
+    py.globals.set('__check', e.data.check || '');
+    const r = py.runPython('__run(__code, __check)');
+    postMessage({type: 'result', id: e.data.id, res: JSON.parse(r)});
+  }catch(err){
+    postMessage({type: 'result', id: e.data.id, res: {ok: false, error: String(err), out: ''}});
+  }
+};
+`;
+function startWorker(){
+  if(worker) worker.terminate();
+  const url = URL.createObjectURL(new Blob([WORKER_SRC], {type: 'text/javascript'}));
+  worker = new Worker(url);
+  let resolveReady;
+  workerReady = new Promise(r => resolveReady = r);
+  const w = worker;
+  w.onmessage = ev => {
+    const m = ev.data;
+    if(m.type === 'ready'){ resolveReady(true); setLoad(''); }
+    else if(m.type === 'fail'){ resolveReady(false); setLoad('Не удалось загрузить Python. Проверь интернет и обнови страницу.', true); }
+    else if(m.type === 'result' && pending && pending.id === m.id){ pending.done(m.res); }
+  };
+  w.onerror = () => { resolveReady(false); setLoad('Ошибка загрузки Python. Проверь интернет и обнови страницу.', true); };
+}
+function setLoad(text, err){
+  const p = $('load');
+  p.textContent = text; p.hidden = !text; p.className = 'load' + (err ? ' err' : '');
+}
+async function runCode(code, check){
+  const ok = await workerReady;
+  if(!ok) return {ok: false, error: 'Python не загрузился.', out: ''};
+  return new Promise(resolve => {
+    const id = ++seq;
+    let finished = false;
+    const timer = setTimeout(() => {
+      if(finished) return;
+      finished = true; pending = null;
+      setLoad('♻️ Перезапускаю Python…');
+      startWorker();
+      resolve({ok: false, timeout: true, error: 'Код работает слишком долго. Похоже, бесконечный цикл: герой застрял.', out: ''});
+    }, 6000);
+    pending = {id, done: res => { if(finished) return; finished = true; clearTimeout(timer); pending = null; resolve(res); }};
+    worker.postMessage({id, code, check});
+  });
+}
+
+function errorTip(err){
+  if(/^IndentationError/.test(err)) return 'Подсказка: строки внутри if, for и def сдвигают на 4 пробела.';
+  if(/^SyntaxError/.test(err)) return 'Подсказка: проверь кавычки, скобки и двоеточия в конце if, for, def.';
+  if(/^NameError/.test(err)) return 'Подсказка: Python не знает такое имя. Проверь написание переменной или функции.';
+  if(/^TypeError/.test(err)) return 'Подсказка: вероятно, перепутаны типы, например текст и число.';
+  return '';
+}
+
+/* ---------- map ---------- */
+function renderMap(){
+  view.textContent = '';
+  if(bossDone()){
+    const v = mk('div', 'card victory');
+    v.append(mk('div', 'big', '🏆'), mk('h2', null, 'Дракон повержен!'));
+    v.append(mk('p', null, 'Ты прошёл весь квест: от print до функции боя. Это уже настоящий код.'));
+    v.append(mk('p', 'small', 'Можно возвращаться на любую локацию и тренироваться дальше.'));
+    view.append(v);
+  }
+  const tools = mk('div', 'tools');
+  const tr = mk('button', null, '🎲 Свободная тренировка'); tr.type = 'button';
+  tr.addEventListener('click', trainRandom);
+  tools.append(tr); view.append(tools);
+
+  const list = mk('ol', 'map');
+  let curFound = false;
+  normalLocs.forEach((l, idx) => {
+    const open = unlocked(idx);
+    const p = progress(l);
+    const first = isDone(l, 0);
+    const isCur = open && !first && !curFound;
+    if(isCur) curFound = true;
+    const li = mk('li', 'node' + (first ? ' done' : '') + (isCur ? ' cur' : '') + (!open ? ' lock' : ''));
+    const b = mk('button'); b.type = 'button'; b.disabled = !open;
+    b.append(mk('span', 'ic', open ? l.emoji : '🔒'));
+    const t = mk('span');
+    t.append(mk('div', 't', l.place + ': ' + l.title));
+    t.append(mk('div', 's', open ? 'Заданий решено: ' + p.d + '/' + p.n + (p.d === p.n ? ' ⭐' : '') : 'Сначала реши первое задание предыдущей локации'));
+    b.append(t);
+    if(isCur) b.append(mk('span', 'hero', '🧙'));
+    b.addEventListener('click', () => openLoc(l.id, Math.max(0, firstUndone(l))));
+    li.append(b); list.append(li);
+  });
+  const open = bossOpen();
+  const bp = progress(bossLoc);
+  const li = mk('li', 'node' + (bossDone() ? ' done' : (open ? ' cur' : ' lock')));
+  const b = mk('button'); b.type = 'button'; b.disabled = !open;
+  b.append(mk('span', 'ic', open ? '🐉' : '🔒'));
+  const t = mk('span');
+  t.append(mk('div', 't', 'Логово дракона'), mk('div', 's', bossDone() ? 'Победа!' : (open ? 'Финальный босс · ударов ' + bp.d + '/' + bp.n : 'Открывается после первых заданий всех локаций')));
+  b.append(t);
+  if(open && !bossDone()) b.append(mk('span', 'hero', '🧙'));
+  b.addEventListener('click', () => openLoc('boss', Math.max(0, firstUndone(bossLoc))));
+  li.append(b); list.append(li);
+  view.append(list);
+  renderHud();
+}
+function firstUndone(loc){ for(let i = 0; i < loc.tasks.length; i++) if(!isDone(loc, i)) return i; return 0; }
+
+function trainRandom(){
+  const pool = [];
+  normalLocs.forEach((l, idx) => { if(unlocked(idx)) l.tasks.forEach((t, i) => pool.push([l.id, i, isDone(l, i) ? 1 : 0])); });
+  const fresh = pool.filter(x => !x[2]);
+  const src = (fresh.length && Math.random() < 0.7) ? fresh : pool;
+  const pick = src[Math.floor(Math.random() * src.length)];
+  openLoc(pick[0], pick[1]);
+}
+
+/* ---------- location ---------- */
+function openLoc(locId, idx){
+  const loc = LOCS.find(l => l.id === locId);
+  idx = idx || 0;
+  view.textContent = '';
+  const back = mk('button', null, '← Карта'); back.type = 'button';
+  back.addEventListener('click', renderMap);
+  view.append(back);
+
+  const head = mk('div', 'lvlhead'); head.style.marginTop = '10px';
+  head.append(mk('span', 'ic', loc.emoji));
+  const ht = mk('div'); ht.append(mk('h2', null, loc.title), mk('small', null, loc.place));
+  head.append(ht); view.append(head);
+
+  if(loc.boss){
+    const left = loc.tasks.length - progress(loc).d;
+    const bx = mk('div', 'boss');
+    bx.append(mk('span', 'ic', '🐉'));
+    const bar = mk('div', 'bar'); const i = mk('i'); i.style.width = (left / loc.tasks.length * 100) + '%'; bar.append(i);
+    bx.append(bar, mk('span', 'small', 'HP ' + Math.round(left / loc.tasks.length * 100) + '%'));
+    view.append(bx);
+  }
+
+  view.append(html('div', 'card', '<h3>История</h3><p>' + loc.story + '</p>'));
+
+  loc.lessons.forEach((ls, k) => {
+    const d = mk('details', 'les');
+    if(k === 0) d.open = true;
+    d.append(mk('summary', null, '📖 ' + (k + 1) + '. ' + ls.t));
+    d.append(html('div', 'body', ls.h));
+    view.append(d);
+  });
+
+  const pills = mk('div', 'pills');
+  loc.tasks.forEach((t, i) => {
+    const b = mk('button', (i === idx ? 'on ' : '') + (isDone(loc, i) ? 'ok' : ''), (isDone(loc, i) ? '✓ ' : '') + (i + 1));
+    b.type = 'button';
+    b.addEventListener('click', () => { saveDraft(loc, idx); openLoc(locId, i); });
+    pills.append(b);
+  });
+  view.append(pills);
+
+  const task = loc.tasks[idx];
+  const k = key(loc, idx);
+  hintsUsed[k] = hintsUsed[k] || 0;
+  const reqTag = (loc.boss || idx === 0) ? 'обязательное' : 'тренировка';
+  const card = mk('div', 'card');
+  const h3 = mk('h3', null, 'Задание ' + (idx + 1) + ' из ' + loc.tasks.length);
+  h3.append(mk('span', 'tag', reqTag));
+  card.append(h3);
+  if(task.story) card.append(html('p', null, '<i>' + task.story + '</i>'));
+  card.append(html('p', null, task.task));
+  view.append(card);
+
+  const ta = mk('textarea'); ta.value = drafts[k] != null ? drafts[k] : task.starter; ta.spellcheck = false;
+  ta.setAttribute('autocapitalize', 'off'); ta.setAttribute('autocomplete', 'off'); ta.setAttribute('autocorrect', 'off');
+  ta.addEventListener('input', () => { drafts[k] = ta.value; });
+  view.append(ta);
+
+  const btns = mk('div', 'btns');
+  const runB = mk('button', null, '▶ Запустить'); runB.type = 'button';
+  const chkB = mk('button', 'main', '⚔️ Проверить'); chkB.type = 'button';
+  const hintB = mk('button'); hintB.type = 'button';
+  const rstB = mk('button', null, '↺ Заново'); rstB.type = 'button';
+  btns.append(runB, chkB, hintB, rstB); view.append(btns);
+
+  const hintBox = mk('div');
+  const out = mk('div', 'out', 'Здесь появится результат кода.');
+  const res = mk('div');
+  view.append(hintBox, out, res);
+
+  function updHint(){ hintB.textContent = '💡 Подсказка (' + hintsUsed[k] + '/3)'; hintB.disabled = hintsUsed[k] >= 3; }
+  function showHints(){
+    hintBox.textContent = '';
+    for(let n = 0; n < hintsUsed[k]; n++){
+      const h = mk('div', 'hint');
+      if(n === 2){ h.append(mk('b', null, 'Решение:')); h.append(mk('pre', 'ex', task.hints[2])); }
+      else h.innerHTML = '💡 ' + task.hints[n];
+      hintBox.append(h);
+    }
+    updHint();
+  }
+  showHints();
+  hintB.addEventListener('click', () => { if(hintsUsed[k] < 3){ hintsUsed[k]++; showHints(); } });
+  rstB.addEventListener('click', () => { ta.value = task.starter; drafts[k] = task.starter; });
+
+  ta.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){ e.preventDefault(); ta.setRangeText('    ', ta.selectionStart, ta.selectionEnd, 'end'); drafts[k] = ta.value; }
+    else if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); act(true); }
+  });
+
+  async function act(check){
+    runB.disabled = chkB.disabled = true;
+    out.className = 'out'; out.textContent = '⏳ Запускаю…'; res.textContent = ''; res.className = '';
+    const r = await runCode(ta.value, check ? task.check : '');
+    runB.disabled = chkB.disabled = false;
+    if(!r.ok){
+      out.className = 'out err';
+      out.textContent = (r.out ? r.out + '\n' : '') + r.error;
+      const tip = errorTip(r.error);
+      if(tip){ res.className = 'res bad'; res.textContent = tip; }
+      return;
+    }
+    out.textContent = r.out || '(код ничего не вывел)';
+    if(!check) return;
+    if(r.passed) win(loc, idx, res);
+    else{ res.className = 'res bad'; res.textContent = '❌ ' + r.fail; }
+  }
+  runB.addEventListener('click', () => act(false));
+  chkB.addEventListener('click', () => act(true));
+}
+function saveDraft(){ /* черновики сохраняются при вводе */ }
+
+function win(loc, idx, res){
+  const k = key(loc, idx);
+  const first = !state.done[k];
+  const before = rankInfo().lvl;
+  const wasUnlocked = normalLocs.map((l, i) => unlocked(i));
+  const wasBoss = bossOpen();
+  let gain = 0;
+  if(first){
+    const base = loc.boss ? 150 : (idx === 0 ? 100 : 50);
+    gain = Math.max(Math.round(base * 0.4), base - 20 * (hintsUsed[k] || 0));
+    state.xp += gain; state.done[k] = true; save();
+  }
+  renderHud();
+  const after = rankInfo();
+  res.className = 'res ok'; res.textContent = '';
+  res.append(mk('div', null, first ? '✅ Верно! +' + gain + ' XP' : '✅ Верно! (это задание уже решено раньше)'));
+  if(after.lvl > before) res.append(mk('div', null, '🎉 Новый ранг: ' + after.title + '!'));
+  normalLocs.forEach((l, i) => { if(!wasUnlocked[i] && unlocked(i)) res.append(mk('div', null, '🔓 Открыта новая локация: ' + l.place)); });
+  if(!wasBoss && bossOpen()) res.append(mk('div', null, '🐉 Дверь в логово дракона открыта!'));
+  if(loc.boss){
+    const left = loc.tasks.length - progress(loc).d;
+    res.append(mk('div', null, left ? '💥 Дракон ранен! Осталось ударов: ' + left : '🏆 Дракон повержен!'));
+  }
+  const btns = mk('div', 'btns'); btns.style.marginTop = '8px';
+  if(idx + 1 < loc.tasks.length){
+    const nb = mk('button', 'go', '➡️ Следующее задание'); nb.type = 'button';
+    nb.addEventListener('click', () => openLoc(loc.id, idx + 1)); btns.append(nb);
+  }
+  const mb = mk('button', null, '🗺️ На карту'); mb.type = 'button';
+  mb.addEventListener('click', renderMap); btns.append(mb);
+  res.append(btns);
+}
+
+$('resetBtn').addEventListener('click', function(){
+  if(this.dataset.arm){
+    state = {xp: 0, done: {}};
+    [hintsUsed, drafts].forEach(o => Object.keys(o).forEach(k => delete o[k]));
+    save(); this.dataset.arm = ''; this.textContent = 'Сбросить прогресс'; renderMap();
+  }else{
+    this.dataset.arm = '1'; this.textContent = 'Точно сбросить?';
+    setTimeout(() => { this.dataset.arm = ''; this.textContent = 'Сбросить прогресс'; }, 3000);
+  }
+});
+
+startWorker();
+renderMap();
+</script>
+</body>
+</html>
